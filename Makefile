@@ -4,6 +4,8 @@
 PORT        := 5001
 ENDPOINT    := ""
 PROJECTNAME := ContosoPets.Api
+MODEL 		:= Model
+DBCONTEXT	:= MainDb
 
 add-gitignore: ## Create gitignore
 	dotnet new gitignore
@@ -14,7 +16,7 @@ get-endpoint-json: ## Request json output of an endpoint, use with ENDPOINT="<en
 build: ## Build project
 	dotnet build
 
-build-no-restore: ## Build project bypassing restoration of NuGet packages
+build-fast: ## Build project bypassing restoration of NuGet packages
 	dotnet build --no-restore
 
 run: ## Run Project in Production mode
@@ -28,6 +30,19 @@ run-bg: ## Run project in the background
 
 kill-dotnet: ## Kill process wich GPID is dotnet
 	kill $(pidof dotnet)
+
+add-packages: ## dotnet add commands used
+	dotnet add package MySql.Data.EntityFrameworkCore
+	dotnet add package Microsoft.EntityFrameworkCore.Design
+	dotnet add package Microsoft.EntityFrameworkCore.Tools
+	dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design
+	dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+	dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
+	dotnet add package Microsoft.AspNetCore.Authentication.JwtBearer
+	dotnet add package Microsoft.AspNetCore.Mvc.NewtonsoftJson
+
+scaffold-controller: ## Scaffold controller using MODEL="<model>" and DBCONTEXT="<DBContext>"
+	dotnet aspnet-codegenerator controller -name ${MODEL}sController -async -api -m ${MODEL} -outDir Controllers
 	
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
