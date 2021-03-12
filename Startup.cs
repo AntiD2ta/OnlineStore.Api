@@ -1,16 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OnlineStore.Api.Data;
+using OnlineStore.Api.Data.Models;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 namespace OnlineStore.Api
 {
@@ -28,6 +36,37 @@ namespace OnlineStore.Api
         {
 
             services.AddControllers();
+            services.AddDbContextPool<OnlineStoreContext>(options => options
+                .UseMySql(Configuration.GetConnectionString("DefaultConnection"),
+                    new MySqlServerVersion(new Version(8, 0, 21)),
+                    mySqlOptions => mySqlOptions
+                        .CharSetBehavior(CharSetBehavior.NeverAppend))
+                .EnableSensitiveDataLogging()
+                .EnableDetailedErrors()
+                );
+            services.AddIdentity<Usuario, IdentityRole>()
+                .AddEntityFrameworkStores<OnlineStoreContext>()
+                .AddDefaultTokenProviders();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    // options.SaveToken = true;
+                    // options.RequireHttpsMetadata = false;
+                    options.TokenValidationParameters =
+                    new TokenValidationParameters
+                    {
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = "https://localhost",
+                        ValidAudience = "https://localhost",
+                        IssuerSigningKey = new
+                    SymmetricSecurityKey(Encoding.ASCII.GetBytes
+                    ("7S79jvOkEdwoRqHx"))
+                    };
+                });
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "OnlineStore.Api", Version = "v1" });
@@ -47,6 +86,8 @@ namespace OnlineStore.Api
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
