@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,52 +38,87 @@ namespace OnlineStore.Api.Controllers
         }
 
         [HttpPost]
-        [Authorize]
-        public async Task<IActionResult> Create(Producto producto)
+        [Authorize(Roles = "Administrator,Vendor")]
+        public async Task<IActionResult> Create([FromBody] ProductoModel model)
         {
+            var producto = new Producto
+            {
+                Nombre = model.Nombre,
+                Descripcion = model.Descripcion,
+                Cantidad = model.Cantidad,
+                Slug = model.Slug,
+                Precio = model.Precio
+            };
+
+            var (usuario, error) = await GetCurrentUser(User);
+
+            if (usuario == null) return StatusCode(500, error);
+
             _context.Productos.Add(producto);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetBySlug), new { id = producto.Id }, producto);
+            return CreatedAtAction(nameof(GetBySlug), new { slug = producto.Slug }, producto);
         }
 
         [HttpPut("{slug}")]
-        [Authorize]
+        [Authorize(Roles = "Administrator,Vendor")]
         public async Task<IActionResult> Update(string slug, Producto producto)
         {
-            if (slug != producto.Slug) return BadRequest();
+            var (usuario, error) = await GetCurrentUser(User);
 
-            _context.Entry(producto).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            if (usuario == null) return StatusCode(500, error);
 
-            return NoContent();
+            if (User.IsInRole("Administrator") || usuario == producto.Usuario)
+            {
+                if (slug != producto.Slug) return BadRequest();
+
+                _context.Entry(producto).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            else
+            {
+                return Unauthorized();
+            }
         }
 
         [HttpDelete("{slug}")]
-        [Authorize]
+        [Authorize(Roles = "Administrator,Vendor")]
         public async Task<IActionResult> Delete(string slug)
         {
+            var (usuario, error) = await GetCurrentUser(User);
+
+            if (usuario == null) return StatusCode(500, error);
+
             var producto = await _context.Productos.Where(p => p.Slug == slug).SingleOrDefaultAsync();
 
             if (producto == null) return NotFound();
 
-            _context.Productos.Remove(producto);
-            await _context.SaveChangesAsync();
+            if (User.IsInRole("Administrator") || usuario == producto.Usuario)
+            {
+                _context.Productos.Remove(producto);
+                await _context.SaveChangesAsync();
 
-            return NoContent();
+                return NoContent();
+            }
+            else
+            {
+                return Unauthorized();
+            }
         }
 
         [HttpPost("{slug}")]
-        [Authorize]
+        [Authorize(Roles = "Client")]
         public async Task<IActionResult> Buy(string slug)
         {
             var producto = await _context.Productos.Where(p => p.Slug == slug).SingleOrDefaultAsync();
 
             if (producto == null) return NotFound();
 
-            var usuario = await _context.Users.FindAsync(User.Identity.Name);
+            var (usuario, error) = await GetCurrentUser(User);
 
-            if (usuario == null) return StatusCode(500);
+            if (usuario == null) return StatusCode(500, error);
 
             var orden = new Orden
             {
@@ -95,6 +132,25 @@ namespace OnlineStore.Api.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(OrdersController.GetById), new { id = orden.Id }, orden);
+        }
+
+        private async Task<(Usuario, Exception)> GetCurrentUser(ClaimsPrincipal User)
+        {
+            string nameId = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
+            string userName;
+            Usuario usuario;
+
+            try
+            {
+                userName = User.Claims.Where(c => c.Type == nameId).First().Value;
+                usuario = await _context.Users.Where(u => u.UserName == userName).SingleAsync();
+            }
+            catch (Exception e)
+            {
+                return (null, e);
+            }
+
+            return (usuario, null);
         }
     }
 }
