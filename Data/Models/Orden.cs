@@ -7,6 +7,7 @@ namespace OnlineStore.Api.Data.Models
 {
     public enum EstadoOrden
     {
+        none,
         created,
         confirmed,
         canceled
