@@ -9,5 +9,12 @@ namespace OnlineStore.Api.Data.Models
 
         public string Apellido { get; set; }
 
+        public string Role { get; set; }
+
+        public static string Admin = "Administrator";
+
+        public static string Vendor = "Vendor";
+
+        public static string Client = "Client";
     }
 }
