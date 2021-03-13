@@ -35,15 +35,21 @@ namespace OnlineStore.Api
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
-            services.AddDbContextPool<OnlineStoreContext>(options => options
-                .UseMySql(Configuration.GetConnectionString("DefaultConnection"),
-                    new MySqlServerVersion(new Version(8, 0, 21)),
-                    mySqlOptions => mySqlOptions
-                        .CharSetBehavior(CharSetBehavior.NeverAppend))
-                .EnableSensitiveDataLogging()
-                .EnableDetailedErrors()
-                );
+            services.AddControllers();//.AddNewtonsoftJson();
+            //services.AddCors();
+            // services.AddDbContext<OnlineStoreContext>(options =>
+            //     options.UseMySql(Configuration.GetConnectionString("DefaultConnection", new MySqlServerVersion(new Version(5, 7, 21)))));
+            // services.AddDbContextPool<OnlineStoreContext>(options => options
+            //     .UseMySql(Configuration.GetConnectionString("DefaultConnection"),
+            //         new MySqlServerVersion(new Version(5, 7, 21)),
+            //         mySqlOptions => mySqlOptions
+            //             .CharSetBehavior(CharSetBehavior.NeverAppend))
+            //     .EnableSensitiveDataLogging()
+            //     .EnableDetailedErrors()
+            //     );
+            services.AddDbContext<OnlineStoreContext>(options =>
+                options.UseInMemoryDatabase("OnlineStore"));
+
             services.AddIdentity<Usuario, IdentityRole>()
                 .AddEntityFrameworkStores<OnlineStoreContext>()
                 .AddDefaultTokenProviders();
