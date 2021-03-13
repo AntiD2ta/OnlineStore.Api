@@ -16,13 +16,12 @@ namespace OnlineStore.Api.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Producto>()
                 .HasOne(p => p.Usuario)
                 .WithMany()
-                .OnDelete(DeleteBehavior.ClientSetNull)
-
-
-
+                .OnDelete(DeleteBehavior.ClientSetNull);
         }
     }
 }
