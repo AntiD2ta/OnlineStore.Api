@@ -22,10 +22,34 @@ namespace OnlineStore.Api.Controllers
             _context = context;
         }
 
+        /// <summary>
+        /// Obtains current orders in system. Public endpoint.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /orders
+        ///
+        /// </remarks>
+        /// <returns>A list of existing orders.</returns>
+        /// <response code="200">Returns the list or orders</response>
         [HttpGet]
         public ActionResult<List<Orden>> GetAll() =>
             _context.Ordenes.ToList();
 
+        /// <summary>
+        /// Obtains a single order by id. Public endpoint.
+        /// </summary>
+        /// <param name = "id" > id of desired order</param>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     GET /orders/{id}
+        ///
+        /// </remarks>
+        /// <returns>Order with provided id.</returns>
+        /// <response code="200">Returns the desired order</response>
+        /// <response code="404">If no exists a order with provided id</response>      
         [HttpGet("{id}")]
         public async Task<ActionResult<Orden>> GetById(int id)
         {
@@ -64,15 +88,35 @@ namespace OnlineStore.Api.Controllers
         //     }
         // }
 
+        /// <summary>
+        /// Edit the state of an order with provided id. Administrators access-only.
+        /// </summary>
+        /// <param name = "id" > id of desired order</param>
+        /// <param name = "state" > State to update</param>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     PATCH /orders/{id}
+        ///     {
+        ///        "state": "confirmed",
+        ///     }
+        ///
+        /// </remarks>
+        /// <returns>Order with provided id with state modified.</returns>
+        /// <response code="200">Returns the updated order</response>
+        /// <response code="400">The given state in request body is not correct</response>
+        /// <response code="404">If no exists a order with provided id</response>     
         [HttpPatch("{id}")]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> ChangeState(int id, EstadoOrden estado)
+        public async Task<IActionResult> ChangeState(int id, [FromBody] EstadoOrden state)
         {
-            if (estado != EstadoOrden.none)
+            if (state != EstadoOrden.none)
             {
                 var orden = await _context.Ordenes.FindAsync(id);
 
                 if (orden == null) return NotFound();
+
+                orden.Estado = state;
 
                 _context.Entry(orden).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -85,6 +129,19 @@ namespace OnlineStore.Api.Controllers
             }
         }
 
+        /// <summary>
+        /// Delete an order by id. Administrators access-only.
+        /// </summary>
+        /// <param name = "id" > id of desired order</param>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     DELETE /orders/{id}
+        ///
+        /// </remarks>
+        /// <response code="204">No Content</response>
+        /// <response code="400">The order cannot be deleted because its state is confirmed</response>
+        /// <response code="404">If no exists a order with provided id</response>     
         [HttpDelete("{id}")]
         [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> Delete(int id)

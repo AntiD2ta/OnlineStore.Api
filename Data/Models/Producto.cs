@@ -22,5 +22,14 @@ namespace OnlineStore.Api.Data.Models
 
         [Required]
         public virtual Usuario Usuario { get; set; }
+
+        public void UpdateFromModel(ProductoModel model)
+        {
+            Nombre = model.Nombre;
+            Descripcion = model.Descripcion;
+            Cantidad = model.Cantidad;
+            Slug = model.Slug;
+            Precio = model.Precio;
+        }
     }
 }

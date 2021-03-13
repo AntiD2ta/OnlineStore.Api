@@ -22,7 +22,23 @@ namespace OnlineStore.Api.Controllers
             _userManager = userManager;
         }
 
-
+        /// <summary>
+        /// Allow an user to log in to the API. If the login is successful, a JWT token is granted
+        /// to access the allowed endpoints based on the user role.
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     POST /login
+        ///     {
+        ///        "username": "vendor",
+        ///        "password": "Test@123"
+        ///     }
+        ///
+        /// </remarks>
+        /// <returns>A newly created JWT token</returns>
+        /// <response code="200">Returns the newly created JWT token</response>
+        /// <response code="401">If the user not exists in the database or if the password is incorrect</response>            
         [HttpPost]
         [Route("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)

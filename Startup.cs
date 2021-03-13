@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,6 +21,7 @@ using Microsoft.OpenApi.Models;
 using OnlineStore.Api.Data;
 using OnlineStore.Api.Data.Models;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace OnlineStore.Api
 {
@@ -80,7 +83,34 @@ namespace OnlineStore.Api
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "OnlineStore.Api", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "OnlineStore API",
+                    Version = "v1",
+                    Description = "Example of a Online Store REST API using ASP .NET Core Web API",
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Miguel Tenorio",
+                        Email = "mtpotro41@gmail.com",
+                    }
+                });
+
+                // var security = new Dictionary<string, IEnumerable<string>>
+                // {
+                //     {"Bearer", new string[] { }},
+                // };
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new SecurityRequirements());
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
         }
 
@@ -107,5 +137,13 @@ namespace OnlineStore.Api
                 endpoints.MapControllers();
             });
         }
+    }
+
+    public class SecurityRequirements : OpenApiSecurityRequirement
+    {
+        Dictionary<string, IEnumerable<string>> Security = new Dictionary<string, IEnumerable<string>>
+        {
+            {"Bearer", new string[] { }},
+        };
     }
 }
