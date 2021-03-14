@@ -48,9 +48,9 @@ namespace OnlineStore.Api.Controllers
         ///     GET /products/{slug}
         ///
         /// </remarks>
-        /// <returns>Product with provided id.</returns>
+        /// <returns>Product with provided slug.</returns>
         /// <response code="200">Returns the desired product</response>
-        /// <response code="404">If no exists a product with provided id</response>      
+        /// <response code="404">If no exists a product with provided slug</response>      
         [HttpGet("{slug}")]
         public async Task<ActionResult<Producto>> GetBySlug(string slug)
         {
@@ -102,6 +102,7 @@ namespace OnlineStore.Api.Controllers
 
             if (usuario == null) return StatusCode(500, error);
 
+            producto.Usuario = usuario;
             _context.Productos.Add(producto);
             await _context.SaveChangesAsync();
 
@@ -135,6 +136,9 @@ namespace OnlineStore.Api.Controllers
         public async Task<IActionResult> Update(string slug, [FromBody] ProductoModel model)
         {
             if (slug != model.Slug && _context.Productos.Any(p => p.Slug == model.Slug))
+                return BadRequest();
+
+            if (!_context.Productos.Any(p => p.Slug == slug))
                 return BadRequest();
 
             var (usuario, error) = await GetCurrentUser(User);
@@ -201,19 +205,24 @@ namespace OnlineStore.Api.Controllers
         /// Buy a product by slug. Client access-only.
         /// </summary>
         /// <param name = "slug" > slug of desired product</param>
+        /// <param name = "model" > amount of product to buy</param>
         /// <remarks>
         /// Sample request:
         ///
         ///     POST /products/{slug}
+        ///     {
+        ///         "cantidad": 2    
+        ///     }
         ///
         /// </remarks>
         /// <returns>An order</returns>
         /// <response code="201">Order created</response>
+        /// <response code="400">Invalid amount to buy</response>
         /// <response code="404">If no exists a product with provided slug</response>
         /// <response code="500">There is a problem obtaining user's credentials</response>    
         [HttpPost("{slug}")]
         [Authorize(Roles = "Client")]
-        public async Task<IActionResult> Buy(string slug)
+        public async Task<IActionResult> Buy(string slug, [FromBody] OrdenModel model)
         {
             var producto = await _context.Productos.Where(p => p.Slug == slug).SingleOrDefaultAsync();
 
@@ -223,18 +232,25 @@ namespace OnlineStore.Api.Controllers
 
             if (usuario == null) return StatusCode(500, error);
 
+            if (model.Cantidad <= 0 || model.Cantidad > producto.Cantidad) return BadRequest();
+
             var orden = new Orden
             {
                 Fecha = DateTime.Now,
                 Estado = EstadoOrden.created,
                 Usuario = usuario,
-                Producto = producto
+                Producto = producto,
+                Cantidad = model.Cantidad
             };
 
             _context.Ordenes.Add(orden);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(OrdersController.GetById), new { id = orden.Id }, orden);
+            producto.Cantidad -= model.Cantidad;
+            _context.Entry(producto).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(OrdersController.GetById), new { controller = "orders", id = orden.Id }, orden);
         }
 
         private async Task<(Usuario, Exception)> GetCurrentUser(ClaimsPrincipal User)

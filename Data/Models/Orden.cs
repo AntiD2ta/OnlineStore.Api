@@ -22,6 +22,8 @@ namespace OnlineStore.Api.Data.Models
 
         public EstadoOrden Estado { get; set; }
 
+        public int Cantidad { get; set; }
+
         public virtual Usuario Usuario { get; set; }
 
         public virtual Producto Producto { get; set; }

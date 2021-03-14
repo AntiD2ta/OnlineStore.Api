@@ -98,7 +98,7 @@ namespace OnlineStore.Api.Controllers
         ///
         ///     PATCH /orders/{id}
         ///     {
-        ///        "state": "confirmed",
+        ///        "state": "2"
         ///     }
         ///
         /// </remarks>
@@ -108,15 +108,15 @@ namespace OnlineStore.Api.Controllers
         /// <response code="404">If no exists a order with provided id</response>     
         [HttpPatch("{id}")]
         [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> ChangeState(int id, [FromBody] EstadoOrden state)
+        public async Task<IActionResult> ChangeState(int id, [FromBody] StateModel state)
         {
-            if (state != EstadoOrden.none)
+            if (state.State != (int)EstadoOrden.none)
             {
                 var orden = await _context.Ordenes.FindAsync(id);
 
                 if (orden == null) return NotFound();
 
-                orden.Estado = state;
+                orden.Estado = (EstadoOrden)state.State;
 
                 _context.Entry(orden).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
