@@ -6,6 +6,7 @@ ENDPOINT    := ""
 PROJECTNAME := ContosoPets.Api
 MODEL 		:= Model
 DBCONTEXT	:= MainDb
+MIGRATION 	:= "InitialCreate"
 
 add-gitignore: ## Create gitignore
 	dotnet new gitignore
@@ -43,6 +44,10 @@ add-packages: ## dotnet add commands used
 
 scaffold-controller: ## Scaffold controller using MODEL="<model>" and DBCONTEXT="<DBContext>"
 	dotnet aspnet-codegenerator controller -name ${MODEL}sController -async -api -m ${MODEL} -outDir Controllers
+
+add-migration:
+	dotnet ef migrations add ${MIGRATION}
+	dotnet ef database update
 	
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
