@@ -38,20 +38,11 @@ namespace OnlineStore.Api
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();//.AddNewtonsoftJson();
-            //services.AddCors();
-            // services.AddDbContext<OnlineStoreContext>(options =>
-            //     options.UseMySql(Configuration.GetConnectionString("DefaultConnection", new MySqlServerVersion(new Version(5, 7, 21)))));
-            // services.AddDbContextPool<OnlineStoreContext>(options => options
-            //     .UseMySql(Configuration.GetConnectionString("DefaultConnection"),
-            //         new MySqlServerVersion(new Version(5, 7, 21)),
-            //         mySqlOptions => mySqlOptions
-            //             .CharSetBehavior(CharSetBehavior.NeverAppend))
-            //     .EnableSensitiveDataLogging()
-            //     .EnableDetailedErrors()
-            //     );
+            services.AddControllers();
+            services.AddCors();
             services.AddDbContext<OnlineStoreContext>(options =>
-                options.UseInMemoryDatabase("OnlineStore"));
+                options.UseMySql(Configuration.GetConnectionString("DefaultConnection"), new MySqlServerVersion(new Version(5, 7, 21))));
+
 
             services.AddIdentity<Usuario, IdentityRole>()
                 .AddEntityFrameworkStores<OnlineStoreContext>()
@@ -95,10 +86,6 @@ namespace OnlineStore.Api
                     }
                 });
 
-                // var security = new Dictionary<string, IEnumerable<string>>
-                // {
-                //     {"Bearer", new string[] { }},
-                // };
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",

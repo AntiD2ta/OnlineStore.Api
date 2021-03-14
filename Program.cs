@@ -34,7 +34,7 @@ namespace OnlineStore.Api
         public static IHost SeedDatabase(this IHost host)
         {
             var scopeFactory = host.Services.GetRequiredService<IServiceScopeFactory>();
-            using var scope = scopeFactory.CreateScope();
+            var scope = scopeFactory.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<OnlineStoreContext>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<Usuario>>();
 

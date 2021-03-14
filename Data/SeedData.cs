@@ -9,7 +9,7 @@ namespace ContosoPets.Api.Data
 {
     public static class SeedData
     {
-        public static void Initialize(OnlineStoreContext context, UserManager<Usuario> userManager)
+        public async static void Initialize(OnlineStoreContext context, UserManager<Usuario> userManager)
         {
             if (!context.Users.Any())
             {
@@ -45,10 +45,10 @@ namespace ContosoPets.Api.Data
 
                 foreach (var user in users)
                 {
-                    userManager.CreateAsync(user, "Test@123");
+                    await userManager.CreateAsync(user, "Test@123");
+                    context.SaveChanges();
                 }
 
-                context.SaveChanges();
             }
         }
     }
