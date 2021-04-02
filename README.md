@@ -28,4 +28,4 @@ No obstante, si no se quiere usar el script, está integrado un database seeder 
 ## Autor ✒️
 
 
-* **Miguel Tenorio**  - [stdevAntiD2ta](https://github.com/stdevAntiD2ta)
+* **Miguel Tenorio**  - [AntiD2ta](https://github.com/AntiD2ta)
